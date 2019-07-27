@@ -10,7 +10,7 @@ var connection = mysql.createConnection({
     database: "bamazon_db"
 });
 
-connection.connect(function (error){
+connection.connect(function (err){
     if (err) {
         console.error("error connecting: " + err.stack);
     }
@@ -22,7 +22,7 @@ function loadProducts() {
     connection.query("SELECT * FROM products", function(err, res){
         if (err) throw err
 
-       console.log(res);
+       console.table(res);
        promptCustomerForItem(res);
     }); 
 }
@@ -67,26 +67,27 @@ function promptCustomerForQuantity(product) {
 
         if(quantity > product.stock_quantity) {
             console.log("\nInsufficient quantity!");
+            loadProducts();
         }
         else {
-            makePurchase(produce, quantity);
+            makePurchase(product, quantity);
         }
     });
 }
 
-function makePurchase(product, quantity) {
+function makePurchase(product, quantity, price) {
     connection.query(
         "UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
         [quantity, product.item_id],
         function(err, res) {
-            console.log("\nSuccessfully purchased" + quantity + " " + product.product_name + "'s!");
-            loadProducts();
+            console.log("\nSuccessfully purchased " + quantity + " " + product.product_name + "'s!");
+            console.log(`\nTotal cost: $${quantity * product.price} `);
         }
     );
 }
 
 function checkInventory(choiceId, inventory) {
-    for (var i = 0; i < inventoty.length; i++) {
+    for (var i = 0; i < inventory.length; i++) {
         if (inventory[i].item_id === choiceId) {
             return inventory[i];
         }
@@ -97,5 +98,6 @@ function checkInventory(choiceId, inventory) {
 function checkForExit(choice) {
     if(choice.toLowerCase() === "q") {
         console.log("Goodbye!");
+        process.exit(0);
     }
 }

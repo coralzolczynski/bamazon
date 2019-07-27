@@ -21,10 +21,7 @@ connection.connect(function (error){
 function loadProducts() {
     connection.query("SELECT * FROM products", function(err, res){
         if (err) throw err
-        // productList= res;
-        // console.log(productList)
-        // for (let i = 0; i < res.length; i++){
-        //     productList.push(res[i].product_name)
+
        console.log(res);
        promptCustomerForItem(res);
     }); 
@@ -42,7 +39,7 @@ function promptCustomerForItem(inventory) {
         }
     ]).then(function(val) {
         checkForExit(val.choice);
-        var chosenId = parseInt(val.choice);
+        var choiceId = parseInt(val.choice);
         var product = checkInventory(choiceId, inventory);
 
         if (product) {
@@ -75,4 +72,30 @@ function promptCustomerForQuantity(product) {
             makePurchase(produce, quantity);
         }
     });
+}
+
+function makePurchase(product, quantity) {
+    connection.query(
+        "UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
+        [quantity, product.item_id],
+        function(err, res) {
+            console.log("\nSuccessfully purchased" + quantity + " " + product.product_name + "'s!");
+            loadProducts();
+        }
+    );
+}
+
+function checkInventory(choiceId, inventory) {
+    for (var i = 0; i < inventoty.length; i++) {
+        if (inventory[i].item_id === choiceId) {
+            return inventory[i];
+        }
+    }
+    return null;
+}
+
+function checkForExit(choice) {
+    if(choice.toLowerCase() === "q") {
+        console.log("Goodbye!");
+    }
 }
